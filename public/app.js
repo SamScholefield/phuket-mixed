@@ -342,6 +342,7 @@ async function refresh() {
     if (activePage === 'tables')   renderTables();
     document.getElementById('schedule-error').innerHTML = '';
     document.getElementById('tables-error').innerHTML   = '';
+    document.getElementById('search-wrap').style.display = '';
   } catch (err) {
     setStatus('err', 'offline');
     const e = `<div class="error-strip">⚠ ${esc(err.message)}</div>`;

@@ -15,7 +15,7 @@
       rel="stylesheet"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=calendar_today,dark_mode,light_mode,location_on"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=calendar_today,dark_mode,light_mode,location_on,search"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
@@ -254,14 +254,17 @@
 
       <!-- SCHEDULE -->
       <div id="page-schedule" class="page active">
-        <div class="search-wrap">
-          <input
-            type="text"
-            class="search-input"
-            id="team-search"
-            placeholder="Search team name…"
-            oninput="renderSchedule()"
-          />
+        <div class="search-wrap" id="search-wrap" style="display:none">
+          <div class="search-box">
+            <span class="material-symbols-rounded search-icon">search</span>
+            <input
+              type="text"
+              class="search-input"
+              id="team-search"
+              placeholder="Search team name…"
+              oninput="renderSchedule()"
+            />
+          </div>
         </div>
         <div id="schedule-error"></div>
         <div id="schedule-container">
