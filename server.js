@@ -13,8 +13,41 @@ const SA_CREDS  = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
                     ? JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON)
                     : null;
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 app.use(express.json());
+
+// ── Rate limiter (PIN brute-force prevention) ───────────────────────────────
+const pinAttempts = new Map(); // ip -> { count, resetAt }
+const PIN_RATE_WINDOW = 60 * 1000; // 1 minute
+const PIN_RATE_MAX    = 5;         // max attempts per window
+
+function checkPinRate(req, res) {
+  const ip = req.ip;
+  const now = Date.now();
+  let entry = pinAttempts.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 0, resetAt: now + PIN_RATE_WINDOW };
+    pinAttempts.set(ip, entry);
+  }
+
+  entry.count++;
+  if (entry.count > PIN_RATE_MAX) {
+    const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+    res.set('Retry-After', String(retryAfter));
+    res.status(429).json({ error: `Too many attempts. Try again in ${retryAfter}s` });
+    return false;
+  }
+  return true;
+}
+
+// Clean up stale entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of pinAttempts) {
+    if (now > entry.resetAt) pinAttempts.delete(ip);
+  }
+}, 5 * 60 * 1000);
 
 // ── Sheets read helper ──────────────────────────────────────────────────────
 async function fetchRange(range) {
@@ -108,15 +141,39 @@ async function appendToSheet(range, values) {
   return res.json();
 }
 
+// ── Server-side response cache ───────────────────────────────────────────────
+const DATA_CACHE_TTL = 10 * 1000; // 10 seconds
+let dataCache = null;   // { data, expiresAt }
+let dataFlight = null;  // in-flight promise (prevents thundering herd)
+
+function invalidateDataCache() { dataCache = null; }
+
+async function getCachedData() {
+  if (dataCache && Date.now() < dataCache.expiresAt) return dataCache.data;
+  if (dataFlight) return dataFlight;
+
+  dataFlight = Promise.all([
+    fetchRange('Fixtures!A:I'),
+    fetchRange('Scores!A:D'),
+  ]).then(([fixtures, scores]) => {
+    const data = { fixtures, scores };
+    dataCache = { data, expiresAt: Date.now() + DATA_CACHE_TTL };
+    dataFlight = null;
+    return data;
+  }).catch(err => {
+    dataFlight = null;
+    throw err;
+  });
+
+  return dataFlight;
+}
+
 // ── Read endpoint ───────────────────────────────────────────────────────────
 app.get('/api/data', async (req, res) => {
   try {
-    const [fixtures, scores] = await Promise.all([
-      fetchRange('Fixtures!A:I'),   // MatchID|Type|Pool|Home|Away|Time|Pitch|Ref1|Ref2
-      fetchRange('Scores!A:D'),     // Timestamp|MatchID|HomeScore|AwayScore
-    ]);
+    const data = await getCachedData();
     res.set('Cache-Control', 'no-store');
-    res.json({ fixtures, scores });
+    res.json(data);
   } catch (err) {
     console.error('[/api/data]', err.message);
     res.status(500).json({ error: err.message });
@@ -125,6 +182,7 @@ app.get('/api/data', async (req, res) => {
 
 // ── PIN verification ────────────────────────────────────────────────────────
 app.post('/api/verify-pin', (req, res) => {
+  if (!checkPinRate(req, res)) return;
   if (!SCORE_PIN) return res.status(500).json({ error: 'Score entry not configured' });
   if (req.body.pin === SCORE_PIN) return res.json({ ok: true });
   res.status(403).json({ error: 'Invalid PIN' });
@@ -135,6 +193,7 @@ app.post('/api/score', async (req, res) => {
   try {
     const { matchId, homeScore, awayScore, pin } = req.body;
 
+    if (!checkPinRate(req, res)) return;
     if (!SCORE_PIN) return res.status(500).json({ error: 'Score entry not configured' });
     if (pin !== SCORE_PIN) return res.status(403).json({ error: 'Invalid PIN' });
 
@@ -146,6 +205,7 @@ app.post('/api/score', async (req, res) => {
 
     const timestamp = new Date().toISOString();
     await appendToSheet('Scores!A:D', [[timestamp, matchId.trim().toUpperCase(), h, a]]);
+    invalidateDataCache();
 
     res.json({ ok: true, matchId: matchId.trim().toUpperCase(), homeScore: h, awayScore: a });
   } catch (err) {
