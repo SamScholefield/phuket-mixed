@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Score Entry — Phuket Mixed Touch Rugby 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function(){
+      var t = localStorage.getItem('theme') ||
+        (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    })();
+  </script>
+  <style>
+    .score-page {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .score-header {
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: clamp(1.8rem, 8vw, 2.6rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      color: var(--text);
+      line-height: 0.95;
+      margin-bottom: 8px;
+    }
+
+    .score-header span { color: var(--accent); }
+
+    .score-sub {
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-label);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; animation: fadein 0.15s ease; }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-label {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-label);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--line2);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: "Barlow", sans-serif;
+      font-size: var(--fs-input);
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--accent); }
+    .form-input::placeholder { color: var(--muted); }
+
+    select.form-input {
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8a8a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    .score-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .score-field { text-align: center; }
+
+    .score-field .form-label {
+      text-align: center;
+      font-family: "Barlow", sans-serif;
+      font-weight: 600;
+      font-size: var(--fs-body-sm);
+      color: var(--text);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .score-field .form-input {
+      text-align: center;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: var(--fs-score);
+      font-weight: 700;
+      padding: 8px;
+    }
+
+    /* Remove number input spinners */
+    .score-field .form-input::-webkit-outer-spin-button,
+    .score-field .form-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .score-field .form-input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .score-divider {
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-score);
+      color: var(--muted);
+      text-align: center;
+      padding-bottom: 10px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 6px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-surface {
+      background: var(--surface);
+      border: 1px solid var(--line2);
+      color: var(--text);
+    }
+
+    .warning-banner {
+      background: var(--accent-lo);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-label);
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      display: none;
+    }
+    .warning-banner.visible { display: block; }
+
+    .success-banner {
+      background: var(--win-lo);
+      border-left: 3px solid var(--win);
+      border-radius: 4px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .success-title {
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 1.125rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--win);
+      margin-bottom: 8px;
+    }
+
+    .success-detail {
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-label);
+      color: var(--muted2);
+      line-height: 1.6;
+    }
+
+    .error-msg {
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-label);
+      color: var(--accent);
+      margin-top: 8px;
+      min-height: 1.2em;
+    }
+
+    .back-link {
+      display: inline-block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-label);
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      text-decoration: none;
+      margin-top: 24px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="score-page">
+
+  <div class="score-header">Score <span>Entry</span></div>
+
+  <!-- PIN SCREEN -->
+  <div id="pin-screen" class="screen active">
+    <div class="form-group">
+      <label class="form-label" for="pin-input">Enter PIN</label>
+      <input class="form-input" id="pin-input" type="password" inputmode="numeric"
+        placeholder="••••" autocomplete="off">
+    </div>
+    <button class="btn btn-accent" id="pin-btn" onclick="verifyPin()">Continue</button>
+    <div class="error-msg" id="pin-error"></div>
+  </div>
+
+  <!-- SCORE ENTRY SCREEN -->
+  <div id="score-screen" class="screen">
+    <div class="form-group">
+      <label class="form-label" for="match-select">Match</label>
+      <select class="form-input" id="match-select" onchange="onMatchChange()">
+        <option value="">Select a match…</option>
+      </select>
+    </div>
+
+    <div class="warning-banner" id="score-warning"></div>
+
+    <div class="form-group">
+      <div class="score-row">
+        <div class="score-field">
+          <label class="form-label" id="home-label">Home</label>
+          <input class="form-input" id="home-score" type="number" min="0" inputmode="numeric" placeholder="0" disabled>
+        </div>
+        <div class="score-divider">–</div>
+        <div class="score-field">
+          <label class="form-label" id="away-label">Away</label>
+          <input class="form-input" id="away-score" type="number" min="0" inputmode="numeric" placeholder="0" disabled>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-accent" id="submit-btn" onclick="submitScore()" disabled>Submit Score</button>
+    <div class="error-msg" id="submit-error"></div>
+  </div>
+
+  <!-- SUCCESS SCREEN -->
+  <div id="success-screen" class="screen">
+    <div class="success-banner">
+      <div class="success-title">Score Recorded</div>
+      <div class="success-detail" id="success-detail"></div>
+    </div>
+    <button class="btn btn-accent" onclick="enterAnother()">Enter Another Score</button>
+  </div>
+
+  <a class="back-link" href="/">← Back to tournament</a>
+</div>
+
+<script>
+const FC = { ID:0, TYPE:1, POOL:2, HOME:3, AWAY:4, TIME:5, PITCH:6, REF1:7, REF2:8 };
+const SC = { TS:0, ID:1, HOME:2, AWAY:3 };
+
+let storedPin = '';
+let fixtures = [];
+let scoreMap = {};
+
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── PIN ──────────────────────────────────────────
+document.getElementById('pin-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') verifyPin();
+});
+
+async function verifyPin() {
+  const pin = document.getElementById('pin-input').value;
+  const errEl = document.getElementById('pin-error');
+  const btn = document.getElementById('pin-btn');
+
+  if (!pin) { errEl.textContent = 'Enter a PIN'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  errEl.textContent = '';
+
+  try {
+    const res = await fetch('/api/verify-pin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      errEl.textContent = data.error || 'Invalid PIN';
+      btn.disabled = false;
+      btn.textContent = 'Continue';
+      return;
+    }
+
+    storedPin = pin;
+    await loadFixtures();
+    showScreen('score-screen');
+  } catch (err) {
+    errEl.textContent = 'Connection error';
+    btn.disabled = false;
+    btn.textContent = 'Continue';
+  }
+}
+
+// ── FIXTURES ─────────────────────────────────────
+async function loadFixtures() {
+  const res = await fetch('/api/data');
+  if (!res.ok) throw new Error('Failed to load fixtures');
+  const data = await res.json();
+
+  fixtures = data.fixtures.slice(1)
+    .filter(r => r[FC.HOME] && r[FC.AWAY])
+    .map(r => ({
+      id:   (r[FC.ID]   || '').trim().toUpperCase(),
+      type: (r[FC.TYPE] || '').trim().toLowerCase(),
+      pool: parseInt(r[FC.POOL]) || 0,
+      home: (r[FC.HOME] || '').trim(),
+      away: (r[FC.AWAY] || '').trim(),
+      time: (r[FC.TIME] || '').trim(),
+    }));
+
+  scoreMap = {};
+  data.scores.slice(1).forEach(r => {
+    const id = (r[SC.ID] || '').trim().toUpperCase();
+    if (!id) return;
+    const h = parseInt(r[SC.HOME]), a = parseInt(r[SC.AWAY]);
+    if (isNaN(h) || isNaN(a)) return;
+    scoreMap[id] = { home: h, away: a };
+  });
+
+  populateDropdown();
+}
+
+function populateDropdown() {
+  const sel = document.getElementById('match-select');
+  sel.innerHTML = '<option value="">Select a match…</option>';
+  fixtures.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.id;
+    opt.textContent = `${f.id} — ${f.time} — ${f.home} vs ${f.away}`;
+    sel.appendChild(opt);
+  });
+}
+
+// ── MATCH SELECTION ──────────────────────────────
+function onMatchChange() {
+  const sel = document.getElementById('match-select');
+  const f = fixtures.find(x => x.id === sel.value);
+  const homeInput = document.getElementById('home-score');
+  const awayInput = document.getElementById('away-score');
+  const warning = document.getElementById('score-warning');
+  const submitBtn = document.getElementById('submit-btn');
+
+  document.getElementById('submit-error').textContent = '';
+
+  if (!f) {
+    document.getElementById('home-label').textContent = 'Home';
+    document.getElementById('away-label').textContent = 'Away';
+    homeInput.disabled = true;
+    awayInput.disabled = true;
+    submitBtn.disabled = true;
+    warning.classList.remove('visible');
+    return;
+  }
+
+  document.getElementById('home-label').textContent = f.home;
+  document.getElementById('away-label').textContent = f.away;
+  homeInput.disabled = false;
+  awayInput.disabled = false;
+  homeInput.value = '';
+  awayInput.value = '';
+  submitBtn.disabled = false;
+
+  const existing = scoreMap[f.id];
+  if (existing) {
+    warning.innerHTML = `A score already exists for this match (${esc(String(existing.home))} – ${esc(String(existing.away))}). Submitting will override it.`;
+    warning.classList.add('visible');
+  } else {
+    warning.classList.remove('visible');
+  }
+
+  homeInput.focus();
+}
+
+// ── SUBMIT ───────────────────────────────────────
+async function submitScore() {
+  const matchId = document.getElementById('match-select').value;
+  const homeScore = document.getElementById('home-score').value;
+  const awayScore = document.getElementById('away-score').value;
+  const errEl = document.getElementById('submit-error');
+  const btn = document.getElementById('submit-btn');
+
+  errEl.textContent = '';
+
+  if (!matchId) { errEl.textContent = 'Select a match'; return; }
+  if (homeScore === '' || awayScore === '') { errEl.textContent = 'Enter both scores'; return; }
+
+  const h = parseInt(homeScore), a = parseInt(awayScore);
+  if (isNaN(h) || isNaN(a) || h < 0 || a < 0) {
+    errEl.textContent = 'Scores must be 0 or above';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    const res = await fetch('/api/score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matchId, homeScore: h, awayScore: a, pin: storedPin }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (res.status === 403) {
+        showScreen('pin-screen');
+        document.getElementById('pin-error').textContent = 'PIN expired — please re-enter';
+        document.getElementById('pin-input').value = '';
+        return;
+      }
+      errEl.textContent = data.error || 'Submission failed';
+      btn.disabled = false;
+      btn.textContent = 'Submit Score';
+      return;
+    }
+
+    // Update local score map
+    scoreMap[data.matchId] = { home: data.homeScore, away: data.awayScore };
+
+    // Show success
+    const f = fixtures.find(x => x.id === data.matchId);
+    document.getElementById('success-detail').innerHTML =
+      `${esc(data.matchId)}<br>${esc(f ? f.home : 'Home')} ${data.homeScore} – ${data.awayScore} ${esc(f ? f.away : 'Away')}`;
+    showScreen('success-screen');
+  } catch (err) {
+    errEl.textContent = 'Connection error';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit Score';
+  }
+}
+
+// ── ENTER ANOTHER ────────────────────────────────
+async function enterAnother() {
+  try { await loadFixtures(); } catch (e) { /* use existing data */ }
+  document.getElementById('match-select').value = '';
+  document.getElementById('home-score').value = '';
+  document.getElementById('away-score').value = '';
+  document.getElementById('home-label').textContent = 'Home';
+  document.getElementById('away-label').textContent = 'Away';
+  document.getElementById('home-score').disabled = true;
+  document.getElementById('away-score').disabled = true;
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('score-warning').classList.remove('visible');
+  document.getElementById('submit-error').textContent = '';
+  showScreen('score-screen');
+}
+</script>
+</body>
+</html>
