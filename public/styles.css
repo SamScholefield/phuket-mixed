@@ -114,12 +114,20 @@ body {
 }
 
 .header-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
   font-family: "JetBrains Mono", monospace;
   font-size: var(--fs-label);
   letter-spacing: 0.1em;
   color: var(--muted2);
   text-transform: uppercase;
   flex: 1;
+}
+
+.header-date span + span::before {
+  content: "·";
+  margin-right: 0.5em;
 }
 
 .status-pill {
@@ -136,24 +144,27 @@ body {
 }
 
 .pulse-dot {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--muted);
   flex-shrink: 0;
-  transition: background 0.3s;
+  transition: background 0.3s, box-shadow 0.3s;
 }
 .pulse-dot.live {
   background: var(--win);
+  box-shadow: 0 0 6px 2px var(--win);
   animation: pulse-anim 2s ease infinite;
 }
 @keyframes pulse-anim {
   0%,
   100% {
     opacity: 1;
+    box-shadow: 0 0 6px 2px var(--win);
   }
   50% {
     opacity: 0.3;
+    box-shadow: 0 0 2px 0px var(--win);
   }
 }
 
@@ -747,6 +758,21 @@ body {
 
 :root[data-theme="light"] .theme-toggle-thumb {
   transform: translateX(16px);
+}
+
+@media (max-width: 480px) {
+  .header-date {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .header-date span + span::before {
+    content: none;
+  }
+  .status-pill {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }
 
 @media (max-width: 380px) {
