@@ -125,9 +125,25 @@ body {
   flex: 1;
 }
 
-.header-date span + span::before {
+.header-date span + span::before,
+.header-date span + a::before {
   content: "·";
   margin-right: 0.5em;
+}
+
+.header-icon {
+  font-size: 14px;
+  vertical-align: -2px;
+  margin-right: 3px;
+}
+
+.header-link {
+  color: var(--muted2);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.header-link:hover {
+  color: var(--accent);
 }
 
 .status-pill {
@@ -724,41 +740,24 @@ body {
 }
 
 /* ─── THEME TOGGLE ───────────────────────────── */
-.theme-toggle {
+.theme-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
   cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;
+  color: var(--muted);
+  transition: color 0.15s;
 }
+.theme-btn:hover { color: var(--accent); }
 
-.theme-toggle-track {
-  width: 36px;
-  height: 20px;
-  border-radius: 10px;
-  background: var(--line2);
-  position: relative;
-  transition: background 0.2s;
-}
+.theme-icon-light { display: block; }
+.theme-icon-dark  { display: none; }
 
-.theme-toggle-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--text);
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  transition: transform 0.2s;
-}
-
-:root[data-theme="light"] .theme-toggle-track {
-  background: var(--accent);
-}
-
-:root[data-theme="light"] .theme-toggle-thumb {
-  transform: translateX(16px);
-}
+:root[data-theme="light"] .theme-icon-light { display: none; }
+:root[data-theme="light"] .theme-icon-dark  { display: block; }
 
 @media (max-width: 480px) {
   .header-date {
@@ -766,7 +765,8 @@ body {
     align-items: flex-start;
     gap: 2px;
   }
-  .header-date span + span::before {
+  .header-date span + span::before,
+  .header-date span + a::before {
     content: none;
   }
   .status-pill {
