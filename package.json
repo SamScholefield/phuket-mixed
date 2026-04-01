@@ -1,0 +1,17 @@
+{
+  "name": "phuket-touch-rugby-2026",
+  "version": "1.0.0",
+  "description": "Live tournament standings — Phuket Mixed Touch Rugby 2026",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
