@@ -29,7 +29,7 @@ function toggleTheme() {
 // ═══════════════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════════════
-const REFRESH_MS = 30000;
+const REFRESH_MS = 15000;
 
 const FC = { ID:0, TYPE:1, POOL:2, HOME:3, AWAY:4, TIME:5, PITCH:6, REF1:7, REF2:8 };
 const SC = { TS:0, ID:1, HOME:2, AWAY:3 };

@@ -359,6 +359,12 @@
         color: var(--muted);
       }
 
+      .match-option-check {
+        color: var(--win);
+        font-size: var(--fs-label);
+        font-weight: 700;
+      }
+
       .match-option-teams {
         font-family: "Barlow", sans-serif;
         font-size: var(--fs-body-sm);
@@ -726,7 +732,8 @@
           const btn = document.createElement("button");
           btn.className = "match-option";
           btn.setAttribute("data-id", f.id);
-          btn.innerHTML = `<div class="match-option-top"><span class="match-option-id">${esc(f.id)}</span><span class="match-option-time">${esc(f.time)}</span></div><div class="match-option-teams">${esc(f.home)} vs ${esc(f.away)}</div>`;
+          const scored = scoreMap[f.id] ? '<span class="match-option-check">✓</span>' : '';
+          btn.innerHTML = `<div class="match-option-top"><span class="match-option-id">${esc(f.id)}</span><span class="match-option-time">${esc(f.time)}</span>${scored}</div><div class="match-option-teams">${esc(f.home)} vs ${esc(f.away)}</div>`;
           btn.onclick = function () {
             selectMatch(f.id);
           };

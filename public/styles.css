@@ -736,6 +736,26 @@ body {
   border-radius: 2px;
 }
 
+/* ─── LOADING SPINNER ────────────────────────── */
+.loading-spinner-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid var(--line2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ─── THEME TOGGLE ───────────────────────────── */
 .theme-btn {
   display: flex;

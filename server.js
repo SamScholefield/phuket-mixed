@@ -6,12 +6,25 @@ const crypto  = require('crypto');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1); // Railway runs behind a reverse proxy
+
 const SHEET_ID  = process.env.SHEET_ID;
 const API_KEY   = process.env.GOOGLE_SHEETS_API_KEY;
 const SCORE_PIN = process.env.SCORE_ENTRY_PIN;
 const SA_CREDS  = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
                     ? JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON)
                     : null;
+
+// ── Security headers ────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  res.set({
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '0',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+  });
+  next();
+});
 
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 app.use(express.json());
@@ -220,6 +233,24 @@ app.get('/score', (req, res) => {
 });
 
 // ── Health check for Railway ────────────────────────────────────────────────
-app.get('/health', (_, res) => res.json({ ok: true }));
+app.get('/health', (_, res) => res.json({
+  ok: true,
+  sheetsConfigured: !!(API_KEY && SHEET_ID),
+  scoreEntryConfigured: !!(SCORE_PIN && SA_CREDS),
+}));
 
-app.listen(PORT, () => console.log(`Tournament server running on :${PORT}`));
+// ── Start server ────────────────────────────────────────────────────────────
+const server = app.listen(PORT, () => console.log(`Tournament server running on :${PORT}`));
+
+// ── Graceful shutdown ───────────────────────────────────────────────────────
+function shutdown(signal) {
+  console.log(`${signal} received — closing server`);
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 5000); // force exit after 5s
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
