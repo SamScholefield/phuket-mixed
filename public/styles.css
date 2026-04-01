@@ -642,8 +642,6 @@ body {
   line-height: 1.55;
   color: var(--muted2);
   border-bottom: 1px solid var(--line);
-  display: flex;
-  gap: 10px;
 }
 
 .rule-list li:last-child {
@@ -651,9 +649,8 @@ body {
 }
 
 .rule-list li::before {
-  content: "–";
+  content: "–  ";
   color: var(--muted);
-  flex-shrink: 0;
   font-family: "JetBrains Mono", monospace;
 }
 
