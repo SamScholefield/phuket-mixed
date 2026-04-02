@@ -485,7 +485,9 @@ body {
 
 .standings-table {
   width: 100%;
+  max-width: 500px;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .standings-table th {
