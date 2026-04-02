@@ -83,6 +83,7 @@ const BREAKS = {
 // ═══════════════════════════════════════════════════
 let FIXTURES = [];
 let SCORE_MAP = {};
+let standingsCache = {};
 let activePage = "schedule";
 
 // ═══════════════════════════════════════════════════
@@ -149,6 +150,7 @@ function parseScores(rows) {
 // STANDINGS
 // ═══════════════════════════════════════════════════
 function calcStandings(poolNum) {
+  if (standingsCache[poolNum]) return standingsCache[poolNum];
   const pf = FIXTURES.filter(
     (f) => f.pool === poolNum && !KO_TYPES.has(f.type),
   );
@@ -189,13 +191,39 @@ function calcStandings(poolNum) {
     at.h2h[f.home] = (at.h2h[f.home] || 0) + (a - h);
   });
 
-  return Object.values(st).sort((a, b) => {
+  const arr = Object.values(st);
+
+  // Phase 1: sort by points to identify tied groups
+  arr.sort((a, b) => b.pts - a.pts);
+
+  // Phase 2: compute H2H differential within each tied group
+  // This avoids non-transitive pairwise H2H in circular ties (e.g. A>B, B>C, C>A)
+  let i = 0;
+  while (i < arr.length) {
+    let j = i;
+    while (j < arr.length && arr[j].pts === arr[i].pts) j++;
+    const group = arr.slice(i, j);
+    if (group.length > 1) {
+      const names = new Set(group.map((t) => t.team));
+      group.forEach((t) => {
+        t.h2hGroup = Object.entries(t.h2h)
+          .filter(([opp]) => names.has(opp))
+          .reduce((sum, [, diff]) => sum + diff, 0);
+      });
+    } else {
+      group[0].h2hGroup = 0;
+    }
+    i = j;
+  }
+
+  // Phase 3: final sort — pts → h2h within group → points scored → points diff
+  standingsCache[poolNum] = arr.sort((a, b) => {
     if (b.pts !== a.pts) return b.pts - a.pts;
-    const h2h = (b.h2h[a.team] || 0) - (a.h2h[b.team] || 0);
-    if (h2h !== 0) return h2h;
+    if (b.h2hGroup !== a.h2hGroup) return b.h2hGroup - a.h2hGroup;
     if (b.pf !== a.pf) return b.pf - a.pf;
     return b.pf - b.pa - (a.pf - a.pa);
   });
+  return standingsCache[poolNum];
 }
 
 function poolComplete(p) {
@@ -520,6 +548,7 @@ async function refresh() {
     const { fixtures: fRows, scores: sRows } = await fetchData();
     FIXTURES = parseFixtures(fRows);
     SCORE_MAP = parseScores(sRows);
+    standingsCache = {};
     const played = Object.keys(SCORE_MAP).length;
     const total = FIXTURES.length;
     const time = new Date().toLocaleTimeString([], {

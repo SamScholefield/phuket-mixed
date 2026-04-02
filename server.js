@@ -206,7 +206,6 @@ app.post('/api/score', async (req, res) => {
   try {
     const { matchId, homeScore, awayScore, pin } = req.body;
 
-    if (!checkPinRate(req, res)) return;
     if (!SCORE_PIN) return res.status(500).json({ error: 'Score entry not configured' });
     if (pin !== SCORE_PIN) return res.status(403).json({ error: 'Invalid PIN' });
 
