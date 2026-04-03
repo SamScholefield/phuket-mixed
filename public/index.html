@@ -59,11 +59,10 @@
       (function () {
         var t =
           localStorage.getItem("theme") ||
-          (window.matchMedia("(prefers-color-scheme: light)").matches
-            ? "light"
-            : "dark");
-        if (t === "light")
-          document.documentElement.setAttribute("data-theme", "light");
+          (window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light");
+        document.documentElement.setAttribute("data-theme", t);
       })();
     </script>
   </head>
@@ -86,8 +85,22 @@
           >
         </button>
       </div>
-      <div class="header-title">
-        Phuket<br />Mixed <span>Touch</span><br />Rugby
+      <div class="header-title-row">
+        <div class="header-title">
+          Phuket<br />Mixed <span>Touch</span><br />Rugby
+        </div>
+        <div class="header-logo-wrap">
+          <img
+            src="sponsors/Phuket-Mixed-WHITE.png"
+            alt="Phuket Mixed Touch Logo"
+            class="header-logo header-logo-dark"
+          />
+          <img
+            src="sponsors/Phuket-Mixed-BLACK.png"
+            alt="Phuket Mixed Touch Logo"
+            class="header-logo header-logo-light"
+          />
+        </div>
       </div>
       <div class="header-meta">
         <div class="header-date">

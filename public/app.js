@@ -24,9 +24,9 @@ function toggleTheme() {
   const stored = localStorage.getItem("theme");
   applyTheme(
     stored ||
-      (window.matchMedia("(prefers-color-scheme: light)").matches
-        ? "light"
-        : "dark"),
+      (window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light"),
   );
   window
     .matchMedia("(prefers-color-scheme: light)")
@@ -102,6 +102,7 @@ function showPage(name, el) {
   if (name === "schedule") renderSchedule();
   if (name === "tables") renderTables();
   if (name === "sponsors" && !sponsorsLoaded) renderSponsors();
+  requestAnimationFrame(() => window.scrollTo(0, 0));
 }
 
 // ═══════════════════════════════════════════════════
